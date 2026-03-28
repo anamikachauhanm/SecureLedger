@@ -64,75 +64,7 @@ SecureLedger/
     └── index.html               # HTML template
 ```
 
-## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-- MongoDB (local or MongoDB Atlas)
-
-### Backend Setup
-
-1. **Navigate to backend directory**
-
-```bash
-cd backend
-```
-
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Create `.env` file**
-
-```bash
-MONGODB_URI=mongodb://localhost:27017/secureledger
-JWT_SECRET=your_jwt_secret_key_here
-PORT=5000
-```
-
-4. **Start the backend server**
-
-```bash
-# Development mode with auto-reload
-npm run dev
-
-# Or production mode
-npm start
-```
-
-The backend will be available at `http://localhost:5000`
-
-### Frontend Setup
-
-1. **Navigate to frontend directory**
-
-```bash
-cd frontend
-```
-
-2. **Install dependencies**
-
-```bash
-npm install
-```
-
-3. **Create `.env` file**
-
-```bash
-VITE_API_URL=http://localhost:5000/api
-```
-
-4. **Start the development server**
-
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3000`
 
 ## 📚 API Endpoints
 
@@ -205,13 +137,13 @@ The frontend will be available at `http://localhost:3000`
 
 ## 🚢 Deployment
 
-### Backend Deployment (Heroku/Railway/Render)
+### Backend Deployment (Render)
 
 1. Set environment variables on hosting platform
 2. Configure MongoDB connection
 3. Deploy with `git push`
 
-### Frontend Deployment (Vercel/Netlify)
+### Frontend Deployment (Vercel)
 
 1. Build production bundle: `npm run build`
 2. Connect GitHub repo to hosting platform
@@ -245,75 +177,6 @@ The frontend will be available at `http://localhost:3000`
 - ✅ Mongoose schema validation
 - ✅ Input validation on both client and server
 
-## 🐛 Troubleshooting
-
-### Backend Won't Start
-- Check MongoDB connection
-- Verify `.env` file exists
-- Check port 5000 is available
-
-### Frontend Can't Connect to API
-- Ensure backend is running
-- Check `VITE_API_URL` in `.env`
-- Verify CORS is enabled
-
-### Port Already in Use
-- Change port in `.env` (backend) or `vite.config.ts` (frontend)
-
-## 📝 Development Guidelines
-
-1. Follow project structure conventions
-2. Use TypeScript for type safety
-3. Write meaningful commit messages
-4. Test thoroughly before committing
-5. Update documentation as needed
-
-## 🤝 Contributing
-
-1. Create feature branch: `git checkout -b feature/amazing-feature`
-2. Commit changes: `git commit -m 'Add amazing feature'`
-3. Push to branch: `git push origin feature/amazing-feature`
-4. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 📞 Support
-
-For issues, questions, or suggestions, please open an issue on GitHub.
-
-## 🎉 Getting Started Quickly
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd SecureLedger
-
-# Setup backend
-cd backend
-npm install
-cp .env.example .env
-npm run dev
-
-# In another terminal, setup frontend
-cd frontend
-npm install
-npm run dev
-
-# Open http://localhost:3000 in your browser
-```
-
-## 📌 Next Steps
-
-- [ ] Set up MongoDB
-- [ ] Configure environment variables
-- [ ] Start backend server
-- [ ] Start frontend dev server
-- [ ] Create an account and explore
-- [ ] Add transactions and budgets
-- [ ] Test all features
-- [ ] Deploy to production
 
 ---
 
