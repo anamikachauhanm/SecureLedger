@@ -2,7 +2,12 @@
 
 A comprehensive, secure personal finance management application with a robust backend API and modern React frontend. Track income, expenses, manage budgets, and monitor bill reminders all in one place.
 
-## 🎯 Features
+**Live Demo:** https://secure-ledger-umber.vercel.app  
+**Repository:** https://github.com/anamikachauhanm/SecureLedger
+
+---
+
+## Features
 
 ### Core Functionality
 - **Transaction Management**: Track income and expenses with categories and notes
@@ -26,8 +31,7 @@ A comprehensive, secure personal finance management application with a robust ba
 - **CORS Enabled**: Secure cross-origin requests
 - **Environment Variables**: Sensitive data protection
 
-## 📁 Project Structure
-
+## Project Structure
 ```
 SecureLedger/
 ├── backend/
@@ -64,9 +68,7 @@ SecureLedger/
     └── index.html               # HTML template
 ```
 
-
-
-## 📚 API Endpoints
+## API Endpoints
 
 ### Authentication
 - `POST /api/auth/signup` - Register new user
@@ -97,7 +99,7 @@ SecureLedger/
 - `DELETE /api/admin/users/:id` - Delete user
 - `PATCH /api/admin/users/:id/role` - Update user role
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 1. User registers/logs in with email and password
 2. Backend validates credentials and returns JWT token
@@ -105,7 +107,7 @@ SecureLedger/
 4. Token is included in Authorization header for all requests
 5. Expired tokens trigger automatic logout
 
-## 🎨 Tech Stack
+## Tech Stack
 
 ### Backend
 - **Express.js** - Web framework
@@ -124,7 +126,7 @@ SecureLedger/
 - **Axios** - HTTP client
 - **Vite** - Build tool
 
-## 📱 Pages & Features
+## Pages & Features
 
 | Page | Features |
 |------|----------|
@@ -135,49 +137,59 @@ SecureLedger/
 | **Reminders** | Bill reminders, due date alerts, status tracking |
 | **Settings** | Theme preferences, profile info, logout |
 
-## 🚢 Deployment
+## Deployment
 
-### Backend Deployment (Render)
+### Backend (Render)
+1. Set environment variables on Render dashboard
+2. Configure MongoDB Atlas connection
+3. Deploy with git push
 
-1. Set environment variables on hosting platform
-2. Configure MongoDB connection
-3. Deploy with `git push`
-
-### Frontend Deployment (Vercel)
-
-1. Build production bundle: `npm run build`
-2. Connect GitHub repo to hosting platform
+### Frontend (Vercel)
+1. Connect GitHub repo to Vercel
+2. Set VITE_API_URL environment variable
 3. Deploy automatically on push
 
-## 📊 Database Schema
+## Database Schema
 
 ### User
-- name, email, password, role, theme, currency
-- timestamps
+- name, email, password, role, theme, currency, timestamps
 
 ### Transaction
-- userId, type, amount, category, note, date
-- recurring options, timestamps
+- userId, type, amount, category, note, date, recurring options, timestamps
 
 ### Budget
-- userId, category, limit, month
-- unique index on (userId, category, month)
+- userId, category, limit, month, unique index on (userId, category, month)
 
 ### Reminder
-- userId, title, amount, dueDate, category, isActive
-- timestamps
+- userId, title, amount, dueDate, category, isActive, timestamps
 
-## 🔒 Security Best Practices
+## Security Best Practices
 
-- ✅ Passwords hashed with bcryptjs (salt rounds: 12)
-- ✅ JWT tokens with expiration
-- ✅ Protected routes with role-based access
-- ✅ CORS configured
-- ✅ Environment variables for secrets
-- ✅ Mongoose schema validation
-- ✅ Input validation on both client and server
+- Passwords hashed with bcryptjs (salt rounds: 12)
+- JWT tokens with expiration
+- Protected routes with role-based access
+- CORS configured
+- Environment variables for secrets
+- Mongoose schema validation
+- Input validation on both client and server
 
+## Local Setup
+```bash
+# Clone the repository
+git clone https://github.com/anamikachauhanm/SecureLedger.git
+cd SecureLedger
+
+# Backend setup
+cd backend
+npm install
+npm run dev
+
+# Frontend setup (new terminal)
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
-**SecureLedger** - Your personal finance management companion 💰📊
+SecureLedger - Personal Finance Management System
