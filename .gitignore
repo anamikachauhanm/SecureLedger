@@ -34,3 +34,9 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+# Executables
+*.exe
+# Logs
+logs/
+*.log
