@@ -9,6 +9,7 @@ export interface SignupPayload {
   name: string;
   email: string;
   password: string;
+  confirmPassword: string; // ✅ FIXED
 }
 
 export interface User {
@@ -28,10 +29,7 @@ export interface AuthResponse {
 
 const authService = {
   login: async (payload: LoginPayload): Promise<AuthResponse> => {
-    console.log('🔗 authService.login called with email:', payload.email);
-    console.log('📨 Sending POST to /auth/login');
     const response = await api.post('/auth/login', payload);
-    console.log('📥 Response data:', response.data);
     return response.data;
   },
 
