@@ -1,33 +1,47 @@
-// ============================================================
-// middleware/auth.js — JWT verification
-// ============================================================
+const jwt = require('jsonwebtoken');
 
-const jwt  = require("jsonwebtoken");
-const User = require("../models/User");
-
-exports.protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization?.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: "Not authorized, no token" });
-  }
-
+const verifyToken = (req, res, next) => {
   try {
+    // Get token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'No token provided. Use: Authorization: Bearer <token>'
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select("-password");
+    req.user = decoded;
     next();
-  } catch {
-    return res.status(401).json({ message: "Token invalid or expired" });
+
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Token expired. Please login again.'
+      });
+    }
+    
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid token'
+    });
   }
 };
 
-exports.adminOnly = (req, res, next) => {
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ message: "Admin access required" });
+const isAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Admin access required'
+    });
   }
   next();
 };
+
+module.exports = { verifyToken, isAdmin };

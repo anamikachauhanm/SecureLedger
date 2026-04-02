@@ -1,25 +1,69 @@
-// ============================================================
-// models/Transaction.js — Blueprint for every transaction
-// ============================================================
+const mongoose = require('mongoose');
+const { validateAmount } = require('../utils/validation');
 
-const mongoose = require("mongoose");
-
-const TransactionSchema = new mongoose.Schema(
-  {
-    userId:   { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    type:     { type: String, enum: ["income", "expense"], required: true },
-    amount:   { type: Number, required: true, min: 0 },
-    category: { type: String, required: true },
-    note:     { type: String, default: "" },
-    date:     { type: Date,   default: Date.now },
-    isRecurring: { type: Boolean, default: false },
-    recurringFrequency: {
-      type: String,
-      enum: ["daily", "weekly", "monthly", "yearly", null],
-      default: null,
-    },
+const transactionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User ID is required']
   },
-  { timestamps: true }
-);
+  type: {
+    type: String,
+    enum: ['income', 'expense'],
+    required: [true, 'Transaction type required']
+  },
+  amount: {
+    type: Number,
+    required: [true, 'Amount is required'],
+    validate: [validateAmount, 'Invalid amount']
+  },
+  category: {
+    type: String,
+    required: [true, 'Category is required'],
+    enum: [
+      'Salary', 'Freelance', 'Investment', 'Other Income',
+      'Groceries', 'Transport', 'Utilities', 'Entertainment',
+      'Healthcare', 'Education', 'Shopping', 'Dining',
+      'Subscription', 'Other Expense'
+    ]
+  },
+  description: {
+    type: String,
+    maxlength: [500, 'Description too long'],
+    trim: true
+  },
+  date: {
+    type: Date,
+    required: true,
+    default: Date.now,
+    validate: {
+      validator: function(value) {
+        return value <= new Date();
+      },
+      message: 'Transaction date cannot be in the future'
+    }
+  },
+  isRecurring: {
+    type: Boolean,
+    default: false
+  },
+  recurringFrequency: {
+    type: String,
+    enum: [null, 'daily', 'weekly', 'monthly', 'yearly'],
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { timestamps: true });
 
-module.exports = mongoose.model("Transaction", TransactionSchema);
+// Indexes for performance
+transactionSchema.index({ userId: 1, date: -1 });
+transactionSchema.index({ userId: 1, category: 1 });
+
+module.exports = mongoose.model('Transaction', transactionSchema);

@@ -14,7 +14,7 @@ const User = require("./models/User");
 async function seedData() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Connected to MongoDB");
 
     // Find the demo user (created from earlier login)

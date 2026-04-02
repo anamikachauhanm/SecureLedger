@@ -1,72 +1,71 @@
-// ============================================================
-// routes/admin.js — Admin only: see all users and their stats
-// ============================================================
-
-const express     = require("express");
-const User        = require("../models/User");
-const Transaction = require("../models/Transaction");
-const { protect, adminOnly } = require("../middleware/auth");
-
+const express = require('express');
 const router = express.Router();
-router.use(protect, adminOnly);
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
-// GET /api/admin/users
-router.get("/users", async (req, res) => {
+// GET /api/admin/users (FIX #3 - Authorization)
+router.get('/users', verifyToken, isAdmin, async (req, res, next) => {
   try {
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const { page = 1, limit = 20 } = req.query;
 
-    const withStats = await Promise.all(
-      users.map(async (u) => {
-        const [income, expense] = await Promise.all([
-          Transaction.aggregate([
-            { $match: { userId: u._id, type: "income" } },
-            { $group: { _id: null, total: { $sum: "$amount" } } },
-          ]),
-          Transaction.aggregate([
-            { $match: { userId: u._id, type: "expense" } },
-            { $group: { _id: null, total: { $sum: "$amount" } } },
-          ]),
-        ]);
-        return {
-          ...u.toObject(),
-          totalIncome:  income[0]?.total  || 0,
-          totalExpense: expense[0]?.total || 0,
-          balance:      (income[0]?.total || 0) - (expense[0]?.total || 0),
-        };
-      })
-    );
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json(withStats);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const users = await User.find({})
+      .select('-password')
+      .limit(limitNum)
+      .skip(skip)
+      .lean();
+
+    const total = await User.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        pages: Math.ceil(total / limitNum)
+      }
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
-// DELETE /api/admin/users/:id
-router.delete("/users/:id", async (req, res) => {
+// DELETE /api/admin/users/:id (FIX #3 - Authorization)
+router.delete('/users/:id', verifyToken, isAdmin, async (req, res, next) => {
   try {
-    if (req.params.id === req.user._id.toString())
-      return res.status(400).json({ message: "Cannot delete yourself" });
+    if (req.params.id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot delete yourself'
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
 
     await User.findByIdAndDelete(req.params.id);
     await Transaction.deleteMany({ userId: req.params.id });
-    res.json({ message: "User and all their data deleted" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
-// PATCH /api/admin/users/:id/role
-router.patch("/users/:id/role", async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { role: req.body.role },
-      { new: true }
-    ).select("-password");
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({
+      success: true,
+      message: 'User deleted'
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 

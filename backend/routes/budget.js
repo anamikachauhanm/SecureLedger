@@ -1,73 +1,113 @@
-// ============================================================
-// routes/budget.js — Budget goals per category per month
-// ============================================================
-
-const express     = require("express");
-const Budget      = require("../models/Budget");
-const Transaction = require("../models/Transaction");
-const { protect } = require("../middleware/auth");
-
+const express = require('express');
 const router = express.Router();
-router.use(protect);
+const Budget = require('../models/Budget');
+const { verifyToken } = require('../middleware/auth');
+const { validateAmount } = require('../utils/validation');
 
-// GET /api/budget?month=2025-03
-router.get("/", async (req, res) => {
+// GET /api/budget
+router.get('/', verifyToken, async (req, res, next) => {
   try {
-    const month   = req.query.month || new Date().toISOString().slice(0, 7);
-    const budgets = await Budget.find({ userId: req.user._id, month });
+    const budgets = await Budget.find({ userId: req.user.id })
+      .sort({ month: -1 })
+      .lean();
 
-    const withSpending = await Promise.all(
-      budgets.map(async (b) => {
-        const [{ total } = { total: 0 }] = await Transaction.aggregate([
-          { $match: {
-            userId:   req.user._id,
-            type:     "expense",
-            category: b.category,
-            date: {
-              $gte: new Date(month + "-01"),
-              $lt:  new Date(new Date(month + "-01").setMonth(
-                new Date(month + "-01").getMonth() + 1
-              )),
-            },
-          }},
-          { $group: { _id: null, total: { $sum: "$amount" } } },
-        ]);
-        return {
-          ...b.toObject(),
-          spent:      total,
-          percentage: Math.round((total / b.limit) * 100),
-        };
-      })
-    );
+    const budgetsWithStatus = budgets.map(budget => ({
+      ...budget,
+      percentSpent: Math.min(100, (budget.spent / budget.limit) * 100),
+      isExceeded: budget.spent > budget.limit,
+      isWarning: (budget.spent / budget.limit) >= (budget.alertThreshold / 100)
+    }));
 
-    res.json(withSpending);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({
+      success: true,
+      data: budgetsWithStatus
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
-// POST /api/budget
-router.post("/", async (req, res) => {
+// POST /api/budget (FIX #1, #3)
+router.post('/', verifyToken, async (req, res, next) => {
   try {
     const { category, limit, month } = req.body;
-    const budget = await Budget.findOneAndUpdate(
-      { userId: req.user._id, category, month },
-      { limit },
-      { upsert: true, new: true }
-    );
-    res.status(201).json(budget);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    if (!category || !limit || !month) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category, limit, and month required'
+      });
+    }
+
+    // Validate limit
+    try {
+      validateAmount(limit);
+    } catch (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+
+    const monthDate = new Date(month);
+    monthDate.setDate(1);
+
+    let budget = await Budget.findOne({
+      userId: req.user.id,
+      category,
+      month: monthDate
+    });
+
+    if (budget) {
+      budget.limit = parseFloat(limit);
+      await budget.save();
+    } else {
+      budget = new Budget({
+        userId: req.user.id,
+        category,
+        limit: parseFloat(limit),
+        month: monthDate
+      });
+      await budget.save();
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Budget saved',
+      data: budget
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
 // DELETE /api/budget/:id
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res, next) => {
   try {
-    await Budget.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    res.json({ message: "Budget deleted" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const budget = await Budget.findById(req.params.id);
+
+    if (!budget) {
+      return res.status(404).json({
+        success: false,
+        error: 'Budget not found'
+      });
+    }
+
+    if (budget.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized'
+      });
+    }
+
+    await Budget.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Budget deleted'
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 

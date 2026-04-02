@@ -1,49 +1,103 @@
-// ============================================================
-// routes/reminders.js — Bill reminders
-// ============================================================
-
-const express     = require("express");
-const Reminder    = require("../models/Reminder");
-const { protect } = require("../middleware/auth");
-
+const express = require('express');
 const router = express.Router();
-router.use(protect);
+const Reminder = require('../models/Reminder');
+const { verifyToken } = require('../middleware/auth');
+const { validateAmount } = require('../utils/validation');
 
 // GET /api/reminders
-router.get("/", async (req, res) => {
+router.get('/', verifyToken, async (req, res, next) => {
   try {
-    const today     = new Date().getDate();
-    const reminders = await Reminder.find({ userId: req.user._id, isActive: true });
+    const reminders = await Reminder.find({
+      userId: req.user.id,
+      isActive: true
+    })
+      .sort({ dueDate: 1 })
+      .lean();
 
-    const withStatus = reminders.map((r) => ({
-      ...r.toObject(),
-      daysUntilDue: r.dueDate >= today ? r.dueDate - today : 30 - today + r.dueDate,
-      isDueSoon:    (r.dueDate >= today ? r.dueDate - today : 30 - today + r.dueDate) <= 3,
+    const remindersWithStatus = reminders.map(r => ({
+      ...r,
+      daysUntilDue: Math.ceil((new Date(r.dueDate) - new Date()) / (1000 * 60 * 60 * 24)),
+      isOverdue: new Date(r.dueDate) < new Date() && !r.isPaid
     }));
 
-    res.json(withStatus.sort((a, b) => a.daysUntilDue - b.daysUntilDue));
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({
+      success: true,
+      data: remindersWithStatus
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
-// POST /api/reminders
-router.post("/", async (req, res) => {
+// POST /api/reminders (FIX #1, #3)
+router.post('/', verifyToken, async (req, res, next) => {
   try {
-    const reminder = await Reminder.create({ userId: req.user._id, ...req.body });
-    res.status(201).json(reminder);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const { title, amount, category, dueDate } = req.body;
+
+    if (!title || !amount || !category || !dueDate) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields required'
+      });
+    }
+
+    // Validate amount
+    try {
+      validateAmount(amount);
+    } catch (err) {
+      return res.status(400).json({ success: false, error: err.message });
+    }
+
+    const reminder = new Reminder({
+      userId: req.user.id,
+      title,
+      amount: parseFloat(amount),
+      category,
+      dueDate: new Date(dueDate)
+    });
+
+    await reminder.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Reminder created',
+      data: reminder
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
 // DELETE /api/reminders/:id
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res, next) => {
   try {
-    await Reminder.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    res.json({ message: "Reminder deleted" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const reminder = await Reminder.findById(req.params.id);
+
+    if (!reminder) {
+      return res.status(404).json({
+        success: false,
+        error: 'Reminder not found'
+      });
+    }
+
+    if (reminder.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized'
+      });
+    }
+
+    await Reminder.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Reminder deleted'
+    });
+
+  } catch (error) {
+    next(error);
   }
 });
 
