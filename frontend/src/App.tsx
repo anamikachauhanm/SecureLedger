@@ -17,7 +17,6 @@ import Settings from './pages/Settings';
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
 
-  // Apply dark mode
   useEffect(() => {
     const htmlElement = document.documentElement;
     if (user?.theme === 'dark') {
@@ -27,19 +26,19 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, [user?.theme]);
 
-  // ✅ FIXED LAYOUT
   if (isAuthenticated) {
     return (
       <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900">
         <Navbar />
-        <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        {/* 🔥 FIXED — NO SIDE PADDING */}
+        <main className="w-full">
           {children}
         </main>
       </div>
     );
   }
 
-  // Public pages (Landing, Login, Signup)
   return (
     <div className="min-h-screen w-full">
       {children}
@@ -53,14 +52,10 @@ const App: React.FC = () => {
       <AuthProvider>
         <AppLayout>
           <Routes>
-            {/* Landing */}
             <Route path="/" element={<Landing />} />
-
-            {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Protected */}
             <Route
               path="/dashboard"
               element={
@@ -102,7 +97,6 @@ const App: React.FC = () => {
               }
             />
 
-            {/* Fallback */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
