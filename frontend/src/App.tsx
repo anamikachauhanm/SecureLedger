@@ -16,8 +16,8 @@ import Settings from './pages/Settings';
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
-  
-  // Apply dark mode class to HTML element
+
+  // Apply dark mode
   useEffect(() => {
     const htmlElement = document.documentElement;
     if (user?.theme === 'dark') {
@@ -27,15 +27,23 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, [user?.theme]);
 
-  return isAuthenticated ? (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+  // ✅ FIXED LAYOUT
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen w-full bg-gray-50 dark:bg-gray-900">
+        <Navbar />
+        <main className="w-full px-4 sm:px-6 lg:px-8 py-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  // Public pages (Landing, Login, Signup)
+  return (
+    <div className="min-h-screen w-full">
+      {children}
     </div>
-  ) : (
-    <>{children}</>
   );
 };
 
@@ -45,14 +53,14 @@ const App: React.FC = () => {
       <AuthProvider>
         <AppLayout>
           <Routes>
-            {/* Landing Page */}
+            {/* Landing */}
             <Route path="/" element={<Landing />} />
 
-            {/* Public Routes */}
+            {/* Public */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Protected Routes */}
+            {/* Protected */}
             <Route
               path="/dashboard"
               element={
