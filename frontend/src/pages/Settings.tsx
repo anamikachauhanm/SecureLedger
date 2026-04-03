@@ -13,10 +13,25 @@ const SettingsPage: React.FC = () => {
     try {
       setError('');
       setSuccess('');
+
+      // Apply instantly — don't wait for API
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Then sync with backend
       await updateTheme(theme);
       setSuccess('Theme updated successfully');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
+      // Revert if API fails
+      if (user?.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
       setError(err.message || 'Failed to update theme');
     }
   };
@@ -72,7 +87,7 @@ const SettingsPage: React.FC = () => {
             <label className="form-label">Role</label>
             <input
               type="text"
-              value={user?.role.charAt(0).toUpperCase() + user?.role.slice(1)}
+              value={user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : ''}
               disabled
               className="form-input opacity-50 cursor-not-allowed"
             />
@@ -98,7 +113,6 @@ const SettingsPage: React.FC = () => {
         <div className="space-y-4">
           <p className="text-gray-700 dark:text-gray-300">Choose your preferred theme:</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Light Theme */}
             <button
               onClick={() => handleThemeToggle('light')}
               className={`p-4 rounded-lg border-2 transition-all ${
@@ -114,7 +128,6 @@ const SettingsPage: React.FC = () => {
               {user?.theme === 'light' && <p className="text-xs text-primary-600 dark:text-primary-400">Active</p>}
             </button>
 
-            {/* Dark Theme */}
             <button
               onClick={() => handleThemeToggle('dark')}
               className={`p-4 rounded-lg border-2 transition-all ${
@@ -138,15 +151,10 @@ const SettingsPage: React.FC = () => {
         <h2 className="subsection-title">Security</h2>
         <div className="space-y-4">
           <p className="text-gray-700 dark:text-gray-300">Manage your account security:</p>
-          <button
-            disabled
-            className="btn-secondary opacity-50 cursor-not-allowed"
-          >
+          <button disabled className="btn-secondary opacity-50 cursor-not-allowed">
             Change Password
           </button>
-          <p className="text-xs text-gray-600 dark:text-gray-400 italic">
-            Coming soon
-          </p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 italic">Coming soon</p>
         </div>
       </div>
 
@@ -156,10 +164,7 @@ const SettingsPage: React.FC = () => {
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           Click below to logout from your account
         </p>
-        <button
-          onClick={handleLogout}
-          className="btn-danger flex items-center gap-2"
-        >
+        <button onClick={handleLogout} className="btn-danger flex items-center gap-2">
           <LogOut size={18} />
           Logout
         </button>
@@ -167,19 +172,13 @@ const SettingsPage: React.FC = () => {
 
       {/* About Section */}
       <div className="card bg-primary-50 dark:bg-primary-900/10 border-primary-200 dark:border-primary-800">
-        <h2 className="subsection-title text-primary-700 dark:text-primary-400">About SecureLedger</h2>
+        <h2 className="subsection-title text-primary-700 dark:text-primary-400">About My Financial Advisor</h2>
         <div className="space-y-2 text-gray-700 dark:text-gray-300">
-          <p>
-            <strong>Version:</strong> 1.0.0
-          </p>
-          <p>
-            <strong>Description:</strong> A secure personal finance management application
-          </p>
-          <p>
-            <strong>Features:</strong> Transaction tracking, Budget management, Bill reminders, Financial analytics
-          </p>
+          <p><strong>Version:</strong> 1.0.0</p>
+          <p><strong>Description:</strong> A secure personal finance management application</p>
+          <p><strong>Features:</strong> Transaction tracking, Budget management, Bill reminders, Financial analytics</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 pt-2">
-            © 2026 SecureLedger. All rights reserved.
+            © 2026 My Financial Advisor. All rights reserved.
           </p>
         </div>
       </div>
