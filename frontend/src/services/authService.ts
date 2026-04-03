@@ -9,7 +9,7 @@ export interface SignupPayload {
   name: string;
   email: string;
   password: string;
-  confirmPassword: string; // ✅ FIXED
+  confirmPassword: string;
 }
 
 export interface User {
@@ -44,7 +44,7 @@ const authService = {
   },
 
   updateTheme: async (theme: 'dark' | 'light'): Promise<User> => {
-    const response = await api.patch('/auth/theme', { theme });
+    const response = await api.patch('/auth/update-theme', { theme }); // ✅ fixed
     return response.data.user;
   },
 
