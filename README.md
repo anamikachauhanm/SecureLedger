@@ -173,22 +173,7 @@ SecureLedger/
 - Mongoose schema validation
 - Input validation on both client and server
 
-## Local Setup
-```bash
-# Clone the repository
-git clone https://github.com/anamikachauhanm/SecureLedger.git
-cd SecureLedger
 
-# Backend setup
-cd backend
-npm install
-npm run dev
-
-# Frontend setup (new terminal)
-cd frontend
-npm install
-npm run dev
-```
 
 ---
 
